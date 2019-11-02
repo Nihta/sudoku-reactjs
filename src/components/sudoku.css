@@ -1,0 +1,61 @@
+div.game {
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 18px;
+}
+
+table.sudoku {
+  border: 3px solid rgba(23, 192, 235, 1);
+  border-collapse: collapse;
+  margin: 20px auto;
+  user-select: none;
+}
+
+div.choose-number {
+  display: flex;
+  justify-content: center;
+}
+
+/* Square */
+td {
+  height: 2em;
+  width: 2em;
+  color: #2f3640;
+  border: 1px solid #ccc;
+  text-align: center;
+  outline: none;
+}
+
+/* Kẻ dọc */
+td:nth-child(3),
+td:nth-child(6) {
+  border-right: 3px solid rgba(23, 192, 235, 1);
+}
+
+/* Kẻ ngang */
+tr:nth-child(3),
+tr:nth-child(6) {
+  border-bottom: 3px solid rgba(23, 192, 235, 1);
+}
+
+button {
+  font-weight: bold;
+  color: #3498db;
+  border: none;
+  font-size: 1em;
+  width: 2em;
+  height: 2em;
+  margin: 0px 0.1em;
+  background-color: white;
+  display: inline-block;
+  border: 1px solid #3587b1;
+  transition-property: all;
+  transition-duration: 0.5s;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+button:hover {
+  color: white;
+  background-color: #3498db;
+}
