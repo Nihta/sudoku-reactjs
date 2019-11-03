@@ -155,16 +155,14 @@ class SudokuGenerator {
   }
 }
 const sudokus = {
+  // 589213468
   easy:
-    "CD58GA92FGBFC49851H912EFDG3IA342G56HB546H3AIG68G915C4B4GIA3B6HEAF259HGCDEC8G64BA9",
+    "CD58GA92FGBFC49851H912EFDG3IA342G56HB546H3AIG687915C4B4GIA3B6HEAF259HGCDEC8G64BA9",
   medium:
-    "4E6AIHG23G8CBFDAEI1I257CFHD5GIF32D1HB6H4AECIG3DAG8I5FBHA53BG9D6F2GIDAH3EIC4HE6BG1",
+    "I468C21EGAB8G4ECIFE73AI6B846IBCGHD1E81EDBIGF3GCD56AIBH4F9B5GHCACEA98467B2HGF1CED9",
   hard:
-    "H7I1EF2DCEA4CIBHG63FBH7DEAIBHG4CEFI11DFGH93BEIC5BFAD8G4ECI1HG6BG2AFD39EHFI85BGAC4"
+    "51CIH4F7BFI42EGH3AHGB6ACED93DGEFAIBHA5HD2I7FC9BF37H4AEBH174E3IFDFI8CBA57GCEAI6BHD"
 };
-
-// 005800920000049851091200003003420560054603000680915040400030600002590000008064009
-// 345871926726349851891256473913427568254683197687915342479132685162598734538764219
 
 class Square extends Component {
   render() {
@@ -292,21 +290,49 @@ class Sudoku extends Component {
   constructor(props) {
     super(props);
     const sudokuInit = new SudokuGenerator(sudokus.easy).generate();
-    const puzzle = sudokuInit[0];
-    this.solution = sudokuInit[1].toString();
+    this.puzzle = sudokuInit[0]; // Cần đảm bảo immutability (sử dụng deep copy)
+    this.solution = sudokuInit[1]; // Cần đảm bảo immutability (sử dụng deep copy)
+    this.solutionTypeString = this.solution.toString();
+
     // Chuyển qua dạng set sẽ dễ sử dụng hơn
     const gridOrigin = new Set();
     for (let i = 0; i < 9; i++)
-      for (let j = 0; j < 9; j++) if (puzzle[i][j]) gridOrigin.add(i + "." + j);
+      for (let j = 0; j < 9; j++)
+        if (this.puzzle[i][j]) gridOrigin.add(i + "." + j);
 
     this.state = {
       gridOrigin: gridOrigin,
-      grid: puzzle,
+      grid: JSON.parse(JSON.stringify(this.puzzle)), // deep copy
       chosen: null,
-      filter: new Set(), // Đặt là null sẽ gây lỗi
+      filter: new Set(), // Đặt là
+      highlight: new Set(), // null
+      conflict: new Set() // sẽ gây lỗi
+    };
+  }
+
+  // Tạo trò chơi mới với level
+  generatePuzzle(level) {
+    let dataInput;
+    if (level === "easy") dataInput = sudokus.easy;
+    else if (level === "medium") dataInput = sudokus.medium;
+    else if (level === "hard") dataInput = sudokus.hard;
+    const sudokuInit = new SudokuGenerator(dataInput).generate();
+    this.puzzle = sudokuInit[0];
+    this.solution = sudokuInit[1];
+    this.solutionTypeString = this.solution.toString();
+    const gridOrigin = new Set();
+    for (let i = 0; i < 9; i++)
+      for (let j = 0; j < 9; j++)
+        if (this.puzzle[i][j]) gridOrigin.add(i + "." + j);
+
+    this.setState({
+      gridOrigin: gridOrigin,
+      grid: JSON.parse(JSON.stringify(this.puzzle)),
+      chosen: null,
+      filter: new Set(),
       highlight: new Set(),
       conflict: new Set()
-    };
+    });
   }
 
   // Tìm những values có thể điền vào square (xét 20 square liên quan tới nó)
@@ -437,12 +463,48 @@ class Sudoku extends Component {
       conflict: conflict
     });
 
-    if (grid.toString() === this.solution) alert("Win cmnr!");
+    if (grid.toString() === this.solutionTypeString) {
+      this.setState({
+        chosen: null,
+        filter: new Set(),
+        highlight: new Set(),
+        conflict: new Set()
+      });
+      alert("Win cmnr!");
+    }
+  }
+
+  clear() {
+    this.setState({
+      grid: JSON.parse(JSON.stringify(this.puzzle)), // deep copy
+      chosen: null,
+      filter: new Set(),
+      highlight: new Set(),
+      conflict: new Set()
+    });
+  }
+
+  showSolution() {
+    this.setState({
+      grid: JSON.parse(JSON.stringify(this.solution)), // deep copy
+      chosen: null,
+      filter: new Set(),
+      highlight: new Set(),
+      conflict: new Set()
+    });
   }
 
   render() {
     return (
       <div className="game">
+        <div className="choose-level">
+          <button onClick={() => this.generatePuzzle("easy")}>Dễ</button>
+          <button onClick={() => this.generatePuzzle("medium")}>
+            Trung Bình
+          </button>
+          <button onClick={() => this.generatePuzzle("hard")}>Khó</button>
+        </div>
+
         <Board
           grid={this.state.grid}
           gridOrigin={this.state.gridOrigin}
@@ -463,6 +525,11 @@ class Sudoku extends Component {
           {this.renderChoose(7)}
           {this.renderChoose(8)}
           {this.renderChoose(9)}
+        </div>
+
+        <div className="control">
+          <button onClick={() => this.showSolution()}>Show đáp án</button>
+          <button onClick={() => this.clear()}>Clear all</button>
         </div>
       </div>
     );

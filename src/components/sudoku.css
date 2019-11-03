@@ -10,7 +10,9 @@ table.sudoku {
   user-select: none;
 }
 
-div.choose-number {
+div.choose-number,
+div.choose-level,
+div.control {
   display: flex;
   justify-content: center;
 }
@@ -58,4 +60,14 @@ button {
 button:hover {
   color: white;
   background-color: #3498db;
+}
+
+div.choose-level button {
+  margin-top: 1em;
+  width: auto;
+}
+
+div.control button {
+  margin-top: 1em;
+  width: auto;
 }
