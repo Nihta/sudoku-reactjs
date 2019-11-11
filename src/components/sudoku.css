@@ -4,10 +4,27 @@ div.game {
 }
 
 table.sudoku {
-  border: 3px solid rgba(23, 192, 235, 1);
+  border: 3px solid #00b894;
   border-collapse: collapse;
   margin: 20px auto;
   user-select: none;
+}
+
+table.note {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: -2px;
+  border: none;
+  border-collapse: collapse;
+  user-select: none;
+  font-size: 0.5em;
+  font-weight: bold;
+}
+
+table.note td.note-td {
+  height: 1em;
+  width: 1em;
+  border: none;
 }
 
 div.choose-number,
@@ -18,25 +35,26 @@ div.control {
 }
 
 /* Square */
-td {
+table.sudoku td {
   height: 2em;
   width: 2em;
   color: #2f3640;
+
   border: 1px solid #ccc;
   text-align: center;
   outline: none;
 }
 
 /* Kẻ dọc */
-td:nth-child(3),
-td:nth-child(6) {
-  border-right: 3px solid rgba(23, 192, 235, 1);
+table.sudoku td.sudoku-td:nth-child(3),
+table.sudoku td:nth-child(6) {
+  border-right: 3px solid #00b894;
 }
 
 /* Kẻ ngang */
-tr:nth-child(3),
-tr:nth-child(6) {
-  border-bottom: 3px solid rgba(23, 192, 235, 1);
+table.sudoku tr.sudoku-tr:nth-child(3),
+table.sudoku tr.sudoku-tr:nth-child(6) {
+  border-bottom: 3px solid #00b894;
 }
 
 button {
