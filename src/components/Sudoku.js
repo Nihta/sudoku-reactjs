@@ -1,6 +1,14 @@
 import React, { Component } from "react";
 import "./sudoku.css";
 import SudokuGenerator from "./SudokuGenerator";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPencilAlt,
+  faLightbulb,
+  faEye,
+  faBroom
+} from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
 
 class Square extends Component {
   renderNote() {
@@ -8,17 +16,17 @@ class Square extends Component {
     return (
       <table className="note">
         <tbody>
-          <tr className="sudoku-tr">
+          <tr>
             <td className="note-td">{valueNote[1] ? 1 : " "}</td>
             <td className="note-td">{valueNote[2] ? 2 : " "}</td>
             <td className="note-td">{valueNote[3] ? 3 : " "}</td>
           </tr>
-          <tr className="note">
+          <tr>
             <td className="note-td">{valueNote[4] ? 4 : " "}</td>
             <td className="note-td">{valueNote[5] ? 5 : " "}</td>
             <td className="note-td">{valueNote[6] ? 6 : " "}</td>
           </tr>
-          <tr className="note">
+          <tr>
             <td className="note-td">{valueNote[7] ? 7 : " "}</td>
             <td className="note-td">{valueNote[8] ? 8 : " "}</td>
             <td className="note-td">{valueNote[9] ? 9 : " "}</td>
@@ -29,71 +37,57 @@ class Square extends Component {
   }
 
   render() {
-    if (typeof this.props.value !== "string") {
-      // Render value note
-      return (
-        <td
-          className="sudoku-td"
-          style={this.props.style}
-          onClick={this.props.onClick}
-        >
-          {this.renderNote()}
-        </td>
-      );
-    } else {
-      // Render square bình thường
-      return (
-        <td
-          className="sudoku-td"
-          style={this.props.style}
-          onClick={this.props.onClick}
-        >
-          {this.props.value}
-        </td>
-      );
-    }
+    return (
+      <td
+        className="sudoku-td"
+        style={this.props.style}
+        onClick={this.props.onClick}
+      >
+        {typeof this.props.value !== "string"
+          ? this.renderNote()
+          : this.props.value}
+      </td>
+    );
   }
 }
 
-// Render hàng 9 square dựa vào this.props.arrRow
+// Render một hàng bao gồm 9 square
 class Row extends Component {
+  // Xác định kiểu tô sáng phù hợp cho sqware
   setStyleSquare(row, col) {
     let resStyle = {};
     // Ô origin hay ô người nhập vào
     if (this.props.gridOrigin.has(row + "." + col))
       resStyle.backgroundColor = "rgba(178, 190, 195, 0.25)";
     else resStyle.color = "rgba(27, 156, 252,1.0)";
-
+    // Hightlight
     if (this.props.highlight.has(row + "." + col))
       resStyle.backgroundColor = "rgba(52, 168, 83, 0.2)";
-
+    // Filter
     if (this.props.filter && this.props.filter.has(row + "." + col))
       resStyle.backgroundColor = "rgba(52, 168, 83, 0.5)";
-
+    // Chosen
     if (
       this.props.chosen &&
       this.props.chosen[0] === row &&
       this.props.chosen[1] === col
     )
       resStyle.backgroundColor = "#badc58";
-
+    // Conflict
     if (this.props.conflict && this.props.conflict.has(row + "." + col))
       resStyle.backgroundColor = "#ff7979";
-
     return resStyle;
   }
 
-  renderSquare(i) {
+  renderSquare(col) {
     const arrRow = this.props.arrRow;
-    const val = arrRow[i] ? arrRow[i] : "";
-    const styleSquare = this.setStyleSquare(this.props.row, i);
+    const val = arrRow[col] ? arrRow[col] : "";
+    const styleSquare = this.setStyleSquare(this.props.row, col);
     return (
       <Square
         style={styleSquare}
-        chosen={this.props.chosen}
         value={val}
-        note={this.props.note}
-        onClick={() => this.props.onClick(i)}
+        onClick={() => this.props.onClick(col)}
       />
     );
   }
@@ -128,7 +122,6 @@ class Board extends Component {
         conflict={this.props.conflict}
         chosen={this.props.chosen}
         onClick={col => this.props.onClick(i, col)}
-        note={this.props.note}
       />
     );
   }
@@ -255,45 +248,35 @@ class Sudoku extends Component {
   highlightSquare(i, j) {
     const grid = this.state.grid;
 
-    const valueFilter = grid[i][j] ? grid[i][j] : 10; // 10 thì sẽ !== null
-
     // Tô những ô có cùng value
     let filter = new Set();
     for (let m = 0; m < 9; m++)
       for (let n = 0; n < 9; n++)
-        if (grid[m][n] === valueFilter) filter.add(m + "." + n);
+        if (grid[m][n] && grid[m][n] === grid[i][j]) filter.add(m + "." + n);
 
+    // Tô sáng những ô liên quan
     const highlight = new Set();
     // Tô sáng hàng
-    for (let k = 0; k < 9; k++) {
+    for (let k = 0; k < 9; k++)
       if (!filter.has(i + "." + k)) highlight.add(i + "." + k);
-    }
     // Tô sáng toàn cột
     for (let k = 0; k < 9; k++) {
       if (!filter.has(k + "." + j)) highlight.add(k + "." + j);
+      // Tô sáng box 3x3
+      const line = Math.floor(i / 3) * 3;
+      const row = Math.floor(j / 3) * 3;
+      for (let ln = line; ln < line + 3; ln++)
+        for (let r = row; r < row + 3; r++)
+          if (!filter.has(ln + "." + r)) highlight.add(ln + "." + r);
+
+      this.setState({
+        highlight: highlight,
+        filter: filter
+      });
     }
-    // Tô sáng box 3x3
-    const line = Math.floor(i / 3) * 3;
-    const row = Math.floor(j / 3) * 3;
-    for (let ln = line; ln < line + 3; ln++)
-      for (let r = row; r < row + 3; r++) {
-        if (!filter.has(ln + "." + r)) highlight.add(ln + "." + r);
-      }
-
-    this.setState({
-      highlight: highlight,
-      filter: filter
-    });
   }
 
-  // Khi click vào một square
-  handleOnClickSquare(row, col) {
-    this.highlightSquare(row, col);
-    this.setState({
-      chosen: [row, col]
-    });
-  }
-
+  // Thay đổi state conflic
   updateConflict() {
     const grid = this.state.grid;
     var conflict = new Set();
@@ -309,14 +292,20 @@ class Sudoku extends Component {
     });
   }
 
+  // Khi click vào một square (thay đổi state chosen)
+  handleOnClickSquare(row, col) {
+    this.setState({
+      chosen: [row, col]
+    });
+    this.highlightSquare(row, col);
+  }
+
   // Khi click vào button choose value
   handClickChooseValue(value) {
     // Nếu chưa chọn square nào thì không làm gì hết
     if (!this.state.chosen) return;
-
     const row = this.state.chosen[0];
     const col = this.state.chosen[1];
-
     // Nếu như đây là square origin thì không làm gì hết
     if (this.state.gridOrigin.has(row + "." + col)) return;
 
@@ -347,14 +336,13 @@ class Sudoku extends Component {
     // Cập nhật grid
     if (grid[row][col] === value.toString()) grid[row][col] = "";
     else grid[row][col] = value.toString(); // Lưu ý: value phải type string
-    // Tiến hành tô sáng lại
-    this.highlightSquare(row, col);
-
-    this.updateConflict();
-
     this.setState({
       grid: grid
     });
+
+    // Tiến hành tô sáng lại
+    this.highlightSquare(row, col);
+    this.updateConflict();
 
     // Kiểm tra xem đã win game hay chưa
     if (grid.toString() === this.solutionTypeString) {
@@ -362,69 +350,109 @@ class Sudoku extends Component {
         chosen: null,
         filter: new Set(),
         highlight: new Set(),
-        conflict: new Set()
+        conflict: new Set(),
+        isNoteMode: false
       });
-      alert("Win cmnr!");
+      Swal.fire({
+        title: "Chiến Thắng!",
+        text: "Bạn đã giải thành công câu đố này",
+        icon: "success"
+      });
     }
   }
 
-  note() {
-    const noteModeCurr = this.state.isNoteMode;
+  // Switch mode node
+  handleClickNote() {
     this.setState({
-      isNoteMode: !noteModeCurr
+      isNoteMode: !this.state.isNoteMode
     });
   }
 
   // Khôi phục grid trở về grid orgin
   clear() {
-    this.setState({
-      grid: JSON.parse(JSON.stringify(this.puzzle)), // deep copy
-      chosen: null,
-      filter: new Set(),
-      highlight: new Set(),
-      conflict: new Set()
+    Swal.fire({
+      title: "Xóa dữ liệu?",
+      text: "Xóa dữ liệu chơi và bắt đầu lại",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Đồng ý",
+      cancelButtonText: "Hủy bỏ"
+    }).then(result => {
+      if (result.value) {
+        this.setState({
+          grid: JSON.parse(JSON.stringify(this.puzzle)), // deep copy
+          chosen: null,
+          filter: new Set(),
+          highlight: new Set(),
+          conflict: new Set(),
+          isNoteMode: false
+        });
+        Swal.fire("Thành công!", "Dữ liệu đã được xóa", "success");
+      }
     });
   }
 
   // Hiện thị solution
   showSolution() {
-    this.setState({
-      grid: JSON.parse(JSON.stringify(this.solution)), // deep copy
-      chosen: null,
-      filter: new Set(),
-      highlight: new Set(),
-      conflict: new Set()
+    Swal.fire({
+      title: "Xem đáp án?",
+      text: "Xem đáp án của câu đố này",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Đồng ý",
+      cancelButtonText: "Hủy bỏ"
+    }).then(result => {
+      if (result.value) {
+        this.setState({
+          grid: JSON.parse(JSON.stringify(this.solution)), // deep copy
+          chosen: null,
+          filter: new Set(),
+          highlight: new Set(),
+          conflict: new Set(),
+          isNoteMode: false
+        });
+      }
     });
   }
 
-  // Xem value đúng (theo solution) tại square chosen
-  viewSquareSolution() {
-    const chosen = this.state.chosen;
-    if (chosen) {
+  // // Xem value đúng (theo solution) tại square chosen
+  // viewSquareSolution() {
+  //   const chosen = this.state.chosen;
+  //   if (chosen) {
+  //     const row = chosen[0];
+  //     const col = chosen[1];
+  //     this.handClickChooseValue(this.solution[row][col]);
+  //   }
+  // }
+
+  showValuesPossible() {
+    if (this.state.chosen) {
+      const chosen = this.state.chosen;
       const row = chosen[0];
       const col = chosen[1];
-      this.handClickChooseValue(this.solution[row][col]);
+      if (!this.state.gridOrigin.has(row + "." + col)) {
+        const grid = this.state.grid;
+        grid[row][col] = [];
+        const valuesPossible = this.valuesPossible(row, col);
+        for (let i = 1; i <= 9; i++)
+          grid[row][col][i] = valuesPossible.has(i.toString());
+        this.highlightSquare(row, col);
+        this.updateConflict();
+        this.setState({
+          grid: grid
+        });
+      }
     }
-  }
-
-  // Render button chọn value
-  renderButtonChoose(value) {
-    return (
-      <button onClick={() => this.handClickChooseValue(value)}>{value}</button>
-    );
   }
 
   render() {
     return (
       <div className="game">
-        <div className="choose-level">
-          <button onClick={() => this.generatePuzzle("easy")}>Dễ</button>
-          <button onClick={() => this.generatePuzzle("medium")}>
-            Trung Bình
-          </button>
-          <button onClick={() => this.generatePuzzle("hard")}>Khó</button>
-        </div>
-
+        <ChooseLevel onClick={level => this.generatePuzzle(level)} />
         <Board
           grid={this.state.grid}
           gridOrigin={this.state.gridOrigin}
@@ -432,31 +460,16 @@ class Sudoku extends Component {
           filter={this.state.filter}
           conflict={this.state.conflict}
           chosen={this.state.chosen}
-          note={this.state.note}
           onClick={(row, col) => this.handleOnClickSquare(row, col)}
         />
-
-        <div className="choose-number">
-          {this.renderButtonChoose(1)}
-          {this.renderButtonChoose(2)}
-          {this.renderButtonChoose(3)}
-          {this.renderButtonChoose(4)}
-          {this.renderButtonChoose(5)}
-          {this.renderButtonChoose(6)}
-          {this.renderButtonChoose(7)}
-          {this.renderButtonChoose(8)}
-          {this.renderButtonChoose(9)}
-        </div>
-
-        <div className="control">
-          <button onClick={() => this.showSolution()}>Show solution</button>
-          <button onClick={() => this.clear()}>Clear all board</button>
-          <button onClick={() => this.viewSquareSolution()}>Show</button>
-          <ButtonNote
-            isNoteMode={this.state.isNoteMode}
-            onClick={() => this.note()}
-          />
-        </div>
+        <ChooseValue onClick={value => this.handClickChooseValue(value)} />
+        <Control
+          showValuesPossible={() => this.showValuesPossible()}
+          showSolution={() => this.showSolution()}
+          clear={() => this.clear()}
+          isNoteMode={this.state.isNoteMode}
+          handleClickNote={() => this.handleClickNote()}
+        />
       </div>
     );
   }
@@ -464,14 +477,88 @@ class Sudoku extends Component {
 
 export default Sudoku;
 
-class ButtonNote extends Component {
-  render() {
+class Control extends Component {
+  renderButtonHint() {
+    return (
+      <button onClick={() => this.props.showValuesPossible()}>
+        <FontAwesomeIcon icon={faLightbulb} />
+      </button>
+    );
+  }
+  renderButtonNote() {
     const style = {};
     if (this.props.isNoteMode) style.color = "red";
     return (
-      <button style={style} onClick={this.props.onClick}>
-        Note
+      <button style={style} onClick={() => this.props.handleClickNote()}>
+        <FontAwesomeIcon icon={faPencilAlt} />
       </button>
+    );
+  }
+  renderButtonShowSolution() {
+    return (
+      <button onClick={() => this.props.showSolution()}>
+        <FontAwesomeIcon icon={faEye} />
+      </button>
+    );
+  }
+  renderButtonClear() {
+    return (
+      <button onClick={() => this.props.clear()}>
+        <FontAwesomeIcon icon={faBroom} />
+      </button>
+    );
+  }
+  render() {
+    return (
+      <div className="center control">
+        {this.renderButtonHint()}
+        {this.renderButtonNote()}
+        {this.renderButtonShowSolution()}
+        {this.renderButtonClear()}
+      </div>
+    );
+  }
+}
+
+class ChooseValue extends Component {
+  renderButton(value) {
+    return (
+      <button className="btn-val" onClick={() => this.props.onClick(value)}>
+        {value}
+      </button>
+    );
+  }
+  render() {
+    return (
+      <div className="center">
+        {this.renderButton(1)}
+        {this.renderButton(2)}
+        {this.renderButton(3)}
+        {this.renderButton(4)}
+        {this.renderButton(5)}
+        {this.renderButton(6)}
+        {this.renderButton(7)}
+        {this.renderButton(8)}
+        {this.renderButton(9)}
+      </div>
+    );
+  }
+}
+
+class ChooseLevel extends Component {
+  render() {
+    return (
+      <div className="center">
+        <button className="btn-lv" onClick={() => this.props.onClick("easy")}>
+          Dễ
+        </button>
+        <button className="btn-lv" onClick={() => this.props.onClick("medium")}>
+          Trung Bình
+        </button>
+        <button className="btn-lv" onClick={() => this.props.onClick("hard")}>
+          Khó
+        </button>
+      </div>
     );
   }
 }

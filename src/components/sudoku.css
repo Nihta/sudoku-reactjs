@@ -1,63 +1,63 @@
 div.game {
-  font-family: "Helvetica Neue", sans-serif;
-  font-size: 18px;
+  font-family: "Roboto", sans-serif;
+  font-size: 22px;
 }
 
+/* Lưới sudoku */
 table.sudoku {
   border: 3px solid #00b894;
   border-collapse: collapse;
-  margin: 20px auto;
+  margin: 0.8em auto;
   user-select: none;
 }
 
-table.note {
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: -2px;
-  border: none;
-  border-collapse: collapse;
-  user-select: none;
-  font-size: 0.5em;
-  font-weight: bold;
+/* Kẻ dọc */
+table.sudoku > tbody > tr > td:nth-child(3),
+table.sudoku > tbody > tr > td:nth-child(6) {
+  border-right: 3px solid #00b894;
 }
 
-table.note td.note-td {
-  height: 1em;
-  width: 1em;
-  border: none;
-}
-
-div.choose-number,
-div.choose-level,
-div.control {
-  display: flex;
-  justify-content: center;
+/* Kẻ ngang */
+table.sudoku > tbody > tr:nth-child(3),
+table.sudoku > tbody > tr:nth-child(6) {
+  border-bottom: 3px solid #00b894;
 }
 
 /* Square */
 table.sudoku td {
-  height: 2em;
-  width: 2em;
+  height: 1.5em;
+  width: 1.5em;
   color: #2f3640;
-
+  font-weight: bold;
   border: 1px solid #ccc;
   text-align: center;
   outline: none;
 }
 
-/* Kẻ dọc */
-table.sudoku td.sudoku-td:nth-child(3),
-table.sudoku td:nth-child(6) {
-  border-right: 3px solid #00b894;
+/* Square note */
+table.sudoku table.note {
+  margin: 0 auto;
+  border: none;
+  border-collapse: collapse;
+  user-select: none;
+  font-size: 0.36em;
+  font-weight: bold;
 }
 
-/* Kẻ ngang */
-table.sudoku tr.sudoku-tr:nth-child(3),
-table.sudoku tr.sudoku-tr:nth-child(6) {
-  border-bottom: 3px solid #00b894;
+/* Value notenote */
+table.sudoku table.note td {
+  height: 1em;
+  width: 1em;
+  font-weight: bold;
+  border: none;
 }
 
-button {
+.center {
+  display: flex;
+  justify-content: center;
+}
+
+.control button {
   font-weight: bold;
   color: #3498db;
   border: none;
@@ -75,17 +75,49 @@ button {
   user-select: none;
 }
 
-button:hover {
+.control button {
+  border-radius: 50%;
+  margin: 1em auto;
+  font-size: 1em;
+  height: 1.8em;
+  width: 1.8em;
+}
+
+.control button:nth-child(1):hover {
+  color: #fbc531;
+}
+
+button.btn-val {
+  font-weight: bold;
+  color: #3498db;
+  border: none;
+  font-size: 1em;
+  width: 2em;
+  height: 2em;
+  margin: 0px 0.1em;
+  background-color: white;
+  display: inline-block;
+  border: 1px solid #3587b1;
+  transition-property: all;
+  transition-duration: 0.5s;
+  cursor: pointer;
+  outline: none;
+}
+
+button.btn-val:hover {
   color: white;
   background-color: #3498db;
 }
 
-div.choose-level button {
-  margin-top: 1em;
-  width: auto;
-}
-
-div.control button {
-  margin-top: 1em;
+button.btn-lv {
+  color: #ff4757;
+  background-color: white;
+  border: none;
+  font-size: 1em;
+  margin: 0.2em 0.2em;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
   width: auto;
 }
